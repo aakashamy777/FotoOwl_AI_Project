@@ -1,0 +1,1 @@
+# VideoIntent + shared state definitions
