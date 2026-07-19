@@ -2,30 +2,12 @@ from typing import Literal
 from langgraph.graph import StateGraph, START, END
 from src.state import PipelineState
 
-# Stub node functions (will be replaced by imports in a later step)
-def intent_parser(state: PipelineState) -> dict:
-    print("Executing node: intent_parser")
-    return {}
-
-def image_analyser(state: PipelineState) -> dict:
-    print("Executing node: image_analyser")
-    return {}
-
-def storyboard_writer(state: PipelineState) -> dict:
-    print("Executing node: storyboard_writer")
-    return {}
-
-def script_generator(state: PipelineState) -> dict:
-    print("Executing node: script_generator")
-    return {}
-
-def compiler_fixer(state: PipelineState) -> dict:
-    print("Executing node: compiler_fixer")
-    return {}
-
-def renderer(state: PipelineState) -> dict:
-    print("Executing node: renderer")
-    return {}
+from src.nodes.intent_parser import intent_parser
+from src.nodes.image_analyser import image_analyser
+from src.nodes.storyboard_writer import storyboard_writer
+from src.nodes.script_generator import script_generator
+from src.nodes.compiler_fixer import compiler_fixer
+from src.nodes.renderer import renderer
 
 def fail_node(state: PipelineState) -> dict:
     print("Executing node: fail_node")
