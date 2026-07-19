@@ -1,3 +1,4 @@
+import time
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from src.state import PipelineState, VideoIntent
@@ -26,7 +27,22 @@ def intent_parser(state: PipelineState) -> PipelineState:
             ("user", user_prompt)
         ]
         
-        result = structured_llm.invoke(messages)
+        # Retry loop for 429 rate limit errors (max 2 attempts)
+        max_attempts = 2
+        result = None
+        for attempt in range(max_attempts):
+            try:
+                result = structured_llm.invoke(messages)
+                break
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    if attempt < max_attempts - 1:
+                        sleep_time = 3 if attempt == 0 else 6
+                        print(f"Rate limited. Retrying in {sleep_time}s... (Attempt {attempt+1}/{max_attempts})")
+                        time.sleep(sleep_time)
+                        continue
+                raise e
+                
         # Ensure raw_prompt is correctly set
         if result and hasattr(result, "raw_prompt"):
             result.raw_prompt = user_prompt

@@ -1,3 +1,4 @@
+import time
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from src.state import PipelineState, Storyboard, StoryboardScene
@@ -58,10 +59,25 @@ def storyboard_writer(state: PipelineState) -> PipelineState:
 
         user_content = f"Here is the pool of analyzed images:\n\n{images_context}"
         
-        result = structured_llm.invoke([
-            ("system", system_instruction),
-            ("user", user_content)
-        ])
+        # Retry loop for 429 rate limit errors (max 2 attempts)
+        max_attempts = 2
+        result = None
+        for attempt in range(max_attempts):
+            try:
+                result = structured_llm.invoke([
+                    ("system", system_instruction),
+                    ("user", user_content)
+                ])
+                break
+            except Exception as e:
+                if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                    if attempt < max_attempts - 1:
+                        sleep_time = 3 if attempt == 0 else 6
+                        print(f"Rate limited. Retrying in {sleep_time}s... (Attempt {attempt+1}/{max_attempts})")
+                        time.sleep(sleep_time)
+                        continue
+                raise e
+                
         state["storyboard"] = result
     except Exception as e:
         print(f"Warning: Storyboard writing failed: {e}. Building fallback storyboard.")
@@ -86,6 +102,8 @@ def storyboard_writer(state: PipelineState) -> PipelineState:
 if __name__ == "__main__":
     from src.nodes.intent_parser import intent_parser
     from src.nodes.image_analyser import image_analyser
+    import glob
+    import os
 
     test_state = {
         "image_folder": "data/input_images",
@@ -95,7 +113,14 @@ if __name__ == "__main__":
         "storyboard": None
     }
     
-    print("Step 1: Running image analyser...")
+    # Slice the image list to only the first 4 images to respect rate limits during testing
+    extensions = ("*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG")
+    image_paths = []
+    for ext in extensions:
+        image_paths.extend(glob.glob(os.path.join("data/input_images", ext)))
+    test_state["image_paths"] = sorted(list(set(image_paths)))[:4]
+    
+    print("Step 1: Running image analyser (first 4 images only)...")
     test_state = image_analyser(test_state)
     
     print("\nStep 2: Running intent parser...")

@@ -1,3 +1,4 @@
+import time
 import os
 import base64
 import glob
@@ -25,11 +26,14 @@ def image_analyser(state: PipelineState) -> PipelineState:
         return state
 
     # Get all supported image files sorted alphabetically
-    extensions = ("*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG")
-    image_paths = []
-    for ext in extensions:
-        image_paths.extend(glob.glob(os.path.join(folder, ext)))
-    image_paths = sorted(list(set(image_paths)))
+    if "image_paths" in state and state["image_paths"]:
+        image_paths = state["image_paths"]
+    else:
+        extensions = ("*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG")
+        image_paths = []
+        for ext in extensions:
+            image_paths.extend(glob.glob(os.path.join(folder, ext)))
+        image_paths = sorted(list(set(image_paths)))
 
     if "image_analyses" not in state or state["image_analyses"] is None:
         state["image_analyses"] = []
@@ -60,11 +64,29 @@ def image_analyser(state: PipelineState) -> PipelineState:
                 ]
             )
             
-            res = structured_llm.invoke([message])
+            # Retry loop for 429 rate limit errors (max 2 attempts)
+            max_attempts = 2
+            res = None
+            for attempt in range(max_attempts):
+                try:
+                    res = structured_llm.invoke([message])
+                    break
+                except Exception as e:
+                    if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                        if attempt < max_attempts - 1:
+                            sleep_time = 3 if attempt == 0 else 6
+                            print(f"Rate limited. Retrying in {sleep_time}s... (Attempt {attempt+1}/{max_attempts})")
+                            time.sleep(sleep_time)
+                            continue
+                    raise e
+
             if res:
                 res.image_path = path
                 state["image_analyses"].append(res)
                 print(f"Analyzed {os.path.basename(path)} successfully.")
+                
+            # Small delay to respect free-tier RPM limit
+            time.sleep(4)
         except Exception as e:
             print(f"Warning: Failed to analyze image '{path}': {e}")
             
