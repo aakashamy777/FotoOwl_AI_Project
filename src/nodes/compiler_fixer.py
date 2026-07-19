@@ -22,6 +22,19 @@ def compiler_fixer(state: PipelineState) -> PipelineState:
         with open(reel_path, "w", encoding="utf-8") as f:
             f.write(script)
 
+        # Ensure local image pathing works correctly inside the Remotion app at runtime
+        src_data = "data"
+        dest_data = "remotion-app/public/data"
+        if os.path.exists(src_data) and not os.path.exists(dest_data):
+            try:
+                os.makedirs(os.path.dirname(dest_data), exist_ok=True)
+                os.symlink(os.path.abspath(src_data), dest_data, target_is_directory=True)
+                print("compiler_fixer: Symlinked data folder into remotion-app/public/")
+            except Exception as e:
+                print(f"compiler_fixer: Could not symlink, copying data folder instead: {e}")
+                import shutil
+                shutil.copytree(src_data, dest_data, dirs_exist_ok=True)
+
         # Run bundle check to verify syntax and typescript correctness
         cmd = ["npx", "remotion", "bundle", "src/index.ts"]
         res = subprocess.run(
