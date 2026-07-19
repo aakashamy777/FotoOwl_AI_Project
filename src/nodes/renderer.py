@@ -1,1 +1,48 @@
-# Node to compile and render video using Remotion CLI
+import os
+import subprocess
+from src.state import PipelineState
+
+def renderer(state: PipelineState) -> PipelineState:
+    """Render the generated Remotion composition to an MP4 video file using the Remotion CLI."""
+    print("renderer: Starting video render...")
+    output_path = "outputs/final_video.mp4"
+    try:
+        # Create output directory if it doesn't exist
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Build command: npx remotion render <entry-point> <composition-id> <output-path>
+        cmd = [
+            "npx", "remotion", "render",
+            "remotion-app/src/index.ts",
+            "EventReel",
+            output_path
+        ]
+        
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        
+        if res.returncode == 0:
+            print("renderer: Render completed successfully!")
+            state["render_success"] = True
+            state["final_output_path"] = os.path.abspath(output_path)
+            state["failure_reason"] = None
+        else:
+            err_msg = res.stderr or res.stdout or "Unknown render error"
+            print(f"renderer: Render failed: {err_msg}")
+            state["render_success"] = False
+            state["failure_reason"] = f"Remotion render exited with non-zero status: {err_msg}"
+            
+    except subprocess.TimeoutExpired:
+        print("renderer: Render timed out.")
+        state["render_success"] = False
+        state["failure_reason"] = "Remotion render timed out."
+    except Exception as e:
+        print(f"renderer: Exception occurred: {e}")
+        state["render_success"] = False
+        state["failure_reason"] = f"Renderer exception: {str(e)}"
+        
+    return state
