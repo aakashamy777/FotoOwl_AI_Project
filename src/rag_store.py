@@ -37,8 +37,23 @@ def ingest_all():
     if style_docs:
         db_style.add_documents(style_docs)
 
+    # 2. Ingest remotion snippets
+    snippet_docs = []
+    for f in glob.glob("rag/remotion_snippets/*.md"):
+        comp_name = Path(f).stem
+        with open(f, "r", encoding="utf-8") as file:
+            content = file.read()
+        snippet_docs.append(Document(page_content=content, metadata={"component": comp_name}))
+
+    db_snippets = Chroma(collection_name="remotion_snippets", persist_directory=DB_DIR, embedding_function=embeddings)
+    db_snippets.delete_collection()
+    db_snippets = Chroma(collection_name="remotion_snippets", persist_directory=DB_DIR, embedding_function=embeddings)
+    if snippet_docs:
+        db_snippets.add_documents(snippet_docs)
+
     print("Ingestion summary:")
     print(f"Style guides chunks: {len(style_docs)}")
+    print(f"Remotion snippets chunks: {len(snippet_docs)}")
 
 def get_retriever(collection_name: str, k: int = 3):
     """Return a retriever for the specified Chroma collection."""
