@@ -1,0 +1,30 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	intent_parser(intent_parser)
+	image_analyser(image_analyser)
+	storyboard_writer(storyboard_writer)
+	script_generator(script_generator)
+	compiler_fixer(compiler_fixer)
+	renderer(renderer)
+	fail(fail)
+	increment_retry(increment_retry)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> intent_parser;
+	compiler_fixer -.-> fail;
+	compiler_fixer -. &nbsp;retry&nbsp; .-> increment_retry;
+	compiler_fixer -. &nbsp;render&nbsp; .-> renderer;
+	image_analyser --> storyboard_writer;
+	increment_retry --> script_generator;
+	intent_parser --> image_analyser;
+	script_generator --> compiler_fixer;
+	storyboard_writer --> script_generator;
+	fail --> __end__;
+	renderer --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
