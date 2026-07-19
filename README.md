@@ -21,6 +21,32 @@ PYTHONPATH=. python src/graph.py   # run the full pipeline
 Compiler & Fixer and Script Generator (max 3 retries, hard cap → structured 
 failure state). See `outputs/graph_diagram.mmd` for the Mermaid diagram.
 
+### Graph Diagram
+```mermaid
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	intent_parser(intent_parser)
+	image_analyser(image_analyser)
+	storyboard_writer(storyboard_writer)
+	script_generator(script_generator)
+	compiler_fixer(compiler_fixer)
+	renderer(renderer)
+	fail(fail)
+	increment_retry(increment_retry)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> intent_parser;
+	compiler_fixer -.-> fail;
+	compiler_fixer -. &nbsp;retry&nbsp; .-> increment_retry;
+	compiler_fixer -. &nbsp;render&nbsp; .-> renderer;
+	image_analyser --> storyboard_writer;
+	increment_retry --> script_generator;
+	intent_parser --> image_analyser;
+	script_generator --> compiler_fixer;
+	storyboard_writer --> script_generator;
+	fail --> __end__;
+	renderer --> __end__;
+```
+
 ## Model Routing
 | Node | Model | Reason |
 |---|---|---|
@@ -55,6 +81,8 @@ targeted rather than blind regenerations.
   submission window — pipeline exits gracefully with a structured failure 
   state and the storyboard/script artifacts are saved regardless, per the 
   task's partial-credit guidance.
+- Test suite (tests/) not completed within the submission window — 
+  prioritized graph design, RAG, and model routing per rubric weighting.
 - With more time: swap local sleep-based rate limiting for a proper token-
   bucket limiter, add image selection diversity scoring beyond quality_score, 
   expand RAG corpus with more style/snippet variety.
