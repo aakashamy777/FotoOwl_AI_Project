@@ -18,7 +18,27 @@ def get_embeddings():
 def ingest_all():
     """Ingest both style guides and remotion snippets into separate Chroma collections."""
     embeddings = get_embeddings()
-    print("Ingestion skeleton ready.")
+
+    # 1. Ingest style guides
+    style_docs = []
+    splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("##", "section")])
+    for f in glob.glob("rag/style_guides/*.md"):
+        style_name = Path(f).stem
+        with open(f, "r", encoding="utf-8") as file:
+            content = file.read()
+        chunks = splitter.split_text(content)
+        for chunk in chunks:
+            chunk.metadata["style"] = style_name
+            style_docs.append(chunk)
+
+    db_style = Chroma(collection_name="style_guides", persist_directory=DB_DIR, embedding_function=embeddings)
+    db_style.delete_collection()
+    db_style = Chroma(collection_name="style_guides", persist_directory=DB_DIR, embedding_function=embeddings)
+    if style_docs:
+        db_style.add_documents(style_docs)
+
+    print("Ingestion summary:")
+    print(f"Style guides chunks: {len(style_docs)}")
 
 def get_retriever(collection_name: str, k: int = 3):
     """Return a retriever for the specified Chroma collection."""
