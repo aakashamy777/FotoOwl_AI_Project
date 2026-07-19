@@ -3,35 +3,35 @@
     {
       "scene_id": 1,
       "image_path": "data/input_images/AHD_6008.jpg",
-      "caption": "",
+      "caption": "A beautiful beginning...",
       "duration_seconds": 3.0,
       "transition_type": "crossfade"
     },
     {
       "scene_id": 2,
       "image_path": "data/input_images/AHD_6106.jpg",
-      "caption": "",
+      "caption": "Shared with loved ones.",
       "duration_seconds": 3.0,
       "transition_type": "crossfade"
     },
     {
       "scene_id": 3,
       "image_path": "data/input_images/AHD_6142.jpg",
-      "caption": "",
+      "caption": "Moments to cherish forever.",
       "duration_seconds": 3.0,
       "transition_type": "crossfade"
     },
     {
       "scene_id": 4,
       "image_path": "data/input_images/AHD_6148.jpg",
-      "caption": "",
+      "caption": "Laughter and joy.",
       "duration_seconds": 3.0,
       "transition_type": "crossfade"
     },
     {
       "scene_id": 5,
       "image_path": "data/input_images/DSC_4491.jpg",
-      "caption": "",
+      "caption": "Together, always.",
       "duration_seconds": 3.0,
       "transition_type": "crossfade"
     }
