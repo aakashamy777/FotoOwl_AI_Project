@@ -1,4 +1,4 @@
-import {Img, useCurrentFrame, interpolate} from 'remotion';
+import {Img, useCurrentFrame, interpolate, staticFile} from 'remotion';
 import {TransitionSeries, linearTiming} from '@remotion/transitions';
 import {fade} from '@remotion/transitions/fade';
 import React from 'react';
@@ -23,7 +23,7 @@ const Scene = ({ imageSrc, caption }: { imageSrc: string; caption: string }) => 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       <Img 
-        src={imageSrc} 
+        src={staticFile(imageSrc)} 
         style={{
           transform: `scale(${scale})`,
           width: '100%',

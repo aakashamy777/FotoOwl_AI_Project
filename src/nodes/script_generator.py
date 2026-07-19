@@ -72,7 +72,9 @@ def script_generator(state: PipelineState) -> PipelineState:
             "- Render each scene inside TransitionSeries.Sequence using Img with a slow zoom/Ken Burns scale animation.\n"
             "- Render the caption text over the image using useCurrentFrame() and interpolate() to fade it in and out.\n"
             "- Transition types and durations must match the storyboard description (e.g., fade, slide, etc.).\n"
-            "- Frame rate is 30 FPS. Ensure all imports are correct.\n"
+            "- In TransitionSeries, transitions overlap adjacent sequences. Total duration in frames is: "
+            "total_duration_frames = sum(scene_duration_frames) - (num_scenes - 1) * transition_duration_frames.\n"
+            "- Frame rate is 30 FPS. Ensure all imports are correct, including staticFile if loading assets.\n"
             "- Output ONLY valid, compilable TypeScript React (TSX) code. No markdown wrapping."
         )
 
