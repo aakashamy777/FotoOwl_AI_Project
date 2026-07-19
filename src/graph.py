@@ -21,13 +21,12 @@ def increment_retry_node(state: PipelineState) -> dict:
 def route_after_compile(state: PipelineState) -> Literal["retry", "render", "fail"]:
     """Conditional router determining transition after the compiler_fixer.
     
-    If compile_errors list is empty, we route to render.
+    If compilation was successful (render_success is True), we route to render.
     Otherwise, if we have not exceeded max_retries (default 3), we route to retry
     which increments the retry count and routes back to script_generator.
     If retry count exceeds max_retries, we route to the terminal fail node.
     """
-    errors = state.get("compile_errors", [])
-    if not errors:
+    if state.get("render_success", False):
         return "render"
     
     retry_count = state.get("retry_count", 0)
